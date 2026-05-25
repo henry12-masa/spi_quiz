@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>就活SPI風クイズ</title>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8398161859137802"
+     crossorigin="anonymous"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(135deg,#020617,#1e3a8a,#0f766e);
+  color:#fff;
+}
+header{text-align:center;padding:32px 16px}
+header h1{margin:0;font-size:32px}
+.wrap{max-width:900px;margin:auto;padding:16px}
+.card{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 20px 50px rgba(0,0,0,.28);
+  backdrop-filter:blur(12px);
+}
+.ad{margin:18px auto;padding:10px;background:rgba(255,255,255,.08);border-radius:16px}
+.status{display:flex;justify-content:space-between;font-weight:800;margin-bottom:14px}
+.bar{height:12px;background:rgba(255,255,255,.2);border-radius:999px;overflow:hidden;margin-bottom:20px}
+.bar span{display:block;height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#facc15);transition:.3s}
+.question{font-size:22px;font-weight:900;line-height:1.7;margin-bottom:20px}
+.genre{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#facc15;
+  color:#111827;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:12px;
+}
+.options{display:grid;gap:12px}
+button{
+  border:none;
+  cursor:pointer;
+  border-radius:16px;
+  padding:15px 18px;
+  font-size:16px;
+  font-weight:800;
+}
+.option{background:#fff;color:#111827;text-align:left;transition:.2s}
+.option:hover{transform:translateY(-2px);background:#dbeafe}
+.option.correct{background:#22c55e;color:#fff}
+.option.wrong{background:#ef4444;color:#fff}
+.explain{
+  display:none;
+  margin-top:18px;
+  padding:16px;
+  border-radius:16px;
+  background:rgba(0,0,0,.3);
+  line-height:1.7;
+}
+.start,.restart{background:#22c55e;color:#fff;width:100%;margin-top:16px}
+.result{text-align:center;display:none}
+.score{font-size:48px;font-weight:900;color:#facc15}
+.rank{font-size:26px;font-weight:900;margin:12px 0}
+.small{opacity:.85;font-size:14px}
+@media(max-width:600px){
+  header h1{font-size:26px}
+  .question{font-size:18px}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>就活SPI風クイズ</h1>
+  <p>言語・非言語・推論問題で就活力をチェック！</p>
+</header>
+
+<div class="wrap">
+
+  <div class="ad">
+    <!-- UIゲーム -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-8398161859137802"
+         data-ad-slot="6325875393"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+
+  <div class="card" id="startScreen">
+    <h2>ルール</h2>
+    <p>SPI風の問題に4択で答えてください。</p>
+    <p class="small">全30問ランダム出題。回答後、自動で次の問題へ進みます。</p>
+    <button class="start" onclick="startGame()">スタート</button>
+  </div>
+
+  <div class="card" id="quizScreen" style="display:none;">
+    <div class="status">
+      <div id="count">1 / 30</div>
+      <div id="score">正解 0</div>
+    </div>
+    <div class="bar"><span id="bar"></span></div>
+    <div class="genre" id="genre"></div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="explain" id="explain"></div>
+  </div>
+
+  <div class="card result" id="resultScreen">
+    <div class="score" id="finalScore"></div>
+    <div class="rank" id="rank"></div>
+    <p id="comment"></p>
+
+    <div class="ad">
+      <!-- UIゲーム -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-8398161859137802"
+           data-ad-slot="6325875393"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
+    <button class="restart" onclick="location.reload()">もう一度挑戦する</button>
+  </div>
+
+</div>
+
+<script>
+const allQuestions = [
+  {
+    genre:"非言語",
+    q:"1000円の商品が20%引きになりました。値引き後の価格はいくら？",
+    options:["700円","750円","800円","850円"],
+    answer:2,
+    exp:"1000円の20%は200円。1000−200＝800円です。"
+  },
+  {
+    genre:"非言語",
+    q:"Aさんは時速60kmで2時間走りました。移動距離は？",
+    options:["60km","90km","120km","180km"],
+    answer:2,
+    exp:"距離＝速さ×時間。60×2＝120kmです。"
+  },
+  {
+    genre:"非言語",
+    q:"3個で240円のりんごがあります。5個買うといくら？",
+    options:["300円","360円","400円","420円"],
+    answer:2,
+    exp:"1個80円なので、80×5＝400円です。"
+  },
+  {
+    genre:"非言語",
+    q:"ある数の3倍に6を足すと21になります。ある数は？",
+    options:["3","4","5","6"],
+    answer:2,
+    exp:"3x＋6＝21。3x＝15なので、x＝5です。"
+  },
+  {
+    genre:"非言語",
+    q:"50人のうち、男性が30人です。男性の割合は？",
+    options:["40%","50%","60%","70%"],
+    answer:2,
+    exp:"30÷50＝0.6。つまり60%です。"
+  },
+  {
+    genre:"非言語",
+    q:"原価800円の商品に25%の利益をのせると販売価格はいくら？",
+    options:["900円","950円","1000円","1050円"],
+    answer:2,
+    exp:"800円の25%は200円。800＋200＝1000円です。"
+  },
+  {
+    genre:"非言語",
+    q:"5人で作業すると12日かかる仕事があります。10人で作業すると何日？",
+    options:["3日","4日","6日","8日"],
+    answer:2,
+    exp:"人数が2倍になると日数は半分。12÷2＝6日です。"
+  },
+  {
+    genre:"非言語",
+    q:"定価1200円の商品を10%引きで買いました。支払額は？",
+    options:["960円","1000円","1080円","1100円"],
+    answer:2,
+    exp:"1200円の10%は120円。1200−120＝1080円です。"
+  },
+  {
+    genre:"非言語",
+    q:"1, 3, 6, 10, 15, □ に入る数は？",
+    options:["18","20","21","25"],
+    answer:2,
+    exp:"増え方が+2,+3,+4,+5なので、次は+6。15＋6＝21です。"
+  },
+  {
+    genre:"非言語",
+    q:"2, 4, 8, 16, □ に入る数は？",
+    options:["20","24","30","32"],
+    answer:3,
+    exp:"前の数を2倍しています。16×2＝32です。"
+  },
+
+  {
+    genre:"言語",
+    q:"『慎重』の反対語として最も近いものは？",
+    options:["大胆","冷静","丁寧","安全"],
+    answer:0,
+    exp:"慎重は注意深いこと。反対に近いのは大胆です。"
+  },
+  {
+    genre:"言語",
+    q:"『抽象』の反対語として最も近いものは？",
+    options:["複雑","具体","理論","空想"],
+    answer:1,
+    exp:"抽象の反対は具体です。"
+  },
+  {
+    genre:"言語",
+    q:"『需要』と関係が深い言葉は？",
+    options:["供給","気温","距離","速度"],
+    answer:0,
+    exp:"需要と供給は対になる言葉です。"
+  },
+  {
+    genre:"言語",
+    q:"『迅速』の意味として正しいものは？",
+    options:["ゆっくりしている","非常に早い","細かい","静かである"],
+    answer:1,
+    exp:"迅速は、物事の進み方が非常に早いことです。"
+  },
+  {
+    genre:"言語",
+    q:"『誠実』の意味として最も近いものは？",
+    options:["正直でまじめ","派手で明るい","計算が速い","気が短い"],
+    answer:0,
+    exp:"誠実は、正直でまじめな態度を表します。"
+  },
+  {
+    genre:"言語",
+    q:"『改善』と最も関係が深い言葉は？",
+    options:["悪化","向上","停止","混乱"],
+    answer:1,
+    exp:"改善は、より良い状態にすることなので、向上が近いです。"
+  },
+  {
+    genre:"言語",
+    q:"『利益』の反対に近い言葉は？",
+    options:["売上","費用","損失","価格"],
+    answer:2,
+    exp:"利益の反対に近いのは損失です。"
+  },
+  {
+    genre:"言語",
+    q:"『交渉』の意味として正しいものは？",
+    options:["相手と話し合って条件を決めること","物を壊すこと","速く移動すること","情報を隠すこと"],
+    answer:0,
+    exp:"交渉は、相手と話し合いながら条件や結論を決めることです。"
+  },
+  {
+    genre:"言語",
+    q:"『客観的』の意味として正しいものは？",
+    options:["自分の感情だけで判断する","事実に基づいて判断する","楽観的に考える","急いで決める"],
+    answer:1,
+    exp:"客観的とは、感情ではなく事実や根拠に基づいて見ることです。"
+  },
+  {
+    genre:"言語",
+    q:"『効率』と最も関係が深いものは？",
+    options:["少ない労力で成果を出す","時間を無駄にする","人数を増やすだけ","作業を止める"],
+    answer:0,
+    exp:"効率とは、少ない時間や労力で大きな成果を出す度合いです。"
+  },
+
+  {
+    genre:"推論",
+    q:"AはBより背が高い。CはAより背が高い。最も背が高いのは？",
+    options:["A","B","C","判断できない"],
+    answer:2,
+    exp:"C>A>Bなので、最も背が高いのはCです。"
+  },
+  {
+    genre:"推論",
+    q:"月曜日の3日後は何曜日？",
+    options:["水曜日","木曜日","金曜日","土曜日"],
+    answer:1,
+    exp:"月曜の1日後は火曜、2日後は水曜、3日後は木曜です。"
+  },
+  {
+    genre:"推論",
+    q:"赤・青・黄のボールが1個ずつあります。赤以外を選ぶ方法は何通り？",
+    options:["1通り","2通り","3通り","4通り"],
+    answer:1,
+    exp:"赤以外は青と黄なので2通りです。"
+  },
+  {
+    genre:"推論",
+    q:"A、B、Cの3人がいます。AはBより早く到着し、CはAより遅く到着しました。最初に到着したのは？",
+    options:["A","B","C","判断できない"],
+    answer:0,
+    exp:"AはBより早く、CはAより遅いので、最初はAです。"
+  },
+  {
+    genre:"推論",
+    q:"すべての営業部員は社員である。田中さんは営業部員である。正しいものは？",
+    options:["田中さんは社員である","田中さんは社員ではない","全社員が営業部員である","判断できない"],
+    answer:0,
+    exp:"営業部員は全員社員。田中さんは営業部員なので社員です。"
+  },
+  {
+    genre:"推論",
+    q:"箱に白玉3個、黒玉2個があります。合計はいくつ？",
+    options:["3個","4個","5個","6個"],
+    answer:2,
+    exp:"3＋2＝5個です。"
+  },
+  {
+    genre:"推論",
+    q:"A店はB店より安い。C店はB店より高い。一番安いのは？",
+    options:["A店","B店","C店","判断できない"],
+    answer:0,
+    exp:"A店はB店より安く、C店はB店より高いので、一番安いのはA店です。"
+  },
+  {
+    genre:"推論",
+    q:"1日目に2ページ、2日目に4ページ、3日目に6ページ読みました。4日目は何ページ読む規則？",
+    options:["7ページ","8ページ","9ページ","10ページ"],
+    answer:1,
+    exp:"2ページずつ増えているので、4日目は8ページです。"
+  },
+  {
+    genre:"推論",
+    q:"全員が帽子を持っている。佐藤さんはその全員の中の1人です。正しいのは？",
+    options:["佐藤さんは帽子を持っている","佐藤さんは帽子を持っていない","帽子は1つしかない","判断できない"],
+    answer:0,
+    exp:"全員が帽子を持っているなら、その中の佐藤さんも持っています。"
+  },
+  {
+    genre:"推論",
+    q:"A、B、Cのうち、Aだけが本当のことを言っています。BとCの発言は？",
+    options:["どちらも本当","Bだけ本当","Cだけ本当","どちらも嘘"],
+    answer:3,
+    exp:"Aだけが本当なら、BとCはどちらも嘘です。"
+  },
+
+  {
+    genre:"非言語",
+    q:"ある商品を600円で仕入れ、900円で売りました。利益はいくら？",
+    options:["200円","250円","300円","350円"],
+    answer:2,
+    exp:"900−600＝300円です。"
+  },
+  {
+    genre:"非言語",
+    q:"30分で12問解く人は、10分で何問解ける？",
+    options:["2問","3問","4問","5問"],
+    answer:2,
+    exp:"30分で12問なので、10分は3分の1。12÷3＝4問です。"
+  },
+  {
+    genre:"言語",
+    q:"『維持』の意味として正しいものは？",
+    options:["状態を保つこと","状態を壊すこと","速く進むこと","大きく変えること"],
+    answer:0,
+    exp:"維持とは、今の状態を保つことです。"
+  },
+  {
+    genre:"推論",
+    q:"AはBの兄です。BはCの兄です。Aから見てCは？",
+    options:["兄","弟または妹","父","判断できない"],
+    answer:1,
+    exp:"BがCの兄なのでCはBより年下。Aから見てもCは弟または妹です。"
+  },
+  {
+    genre:"非言語",
+    q:"2000円の30%はいくら？",
+    options:["300円","400円","500円","600円"],
+    answer:3,
+    exp:"2000×0.3＝600円です。"
+  }
+];
+
+let questions = [];
+let current = 0;
+let correct = 0;
+let answered = false;
+
+function shuffle(arr){
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+function startGame(){
+  questions = shuffle([...allQuestions]).slice(0,30);
+  current = 0;
+  correct = 0;
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("quizScreen").style.display = "block";
+  showQuestion();
+}
+
+function showQuestion(){
+  answered = false;
+  const q = questions[current];
+
+  document.getElementById("count").textContent = `${current + 1} / ${questions.length}`;
+  document.getElementById("score").textContent = `正解 ${correct}`;
+  document.getElementById("bar").style.width = `${(current / questions.length) * 100}%`;
+  document.getElementById("genre").textContent = q.genre;
+  document.getElementById("question").textContent = q.q;
+
+  const optionsEl = document.getElementById("options");
+  const explainEl = document.getElementById("explain");
+
+  optionsEl.innerHTML = "";
+  explainEl.style.display = "none";
+  explainEl.textContent = "";
+
+  q.options.forEach((text, index) => {
+    const btn = document.createElement("button");
+    btn.className = "option";
+    btn.textContent = text;
+    btn.onclick = () => answer(index, btn);
+    optionsEl.appendChild(btn);
+  });
+}
+
+function answer(index, btn){
+  if(answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const buttons = document.querySelectorAll(".option");
+
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if(i === q.answer) b.classList.add("correct");
+  });
+
+  if(index === q.answer){
+    correct++;
+  }else{
+    btn.classList.add("wrong");
+  }
+
+  document.getElementById("score").textContent = `正解 ${correct}`;
+  document.getElementById("explain").style.display = "block";
+  document.getElementById("explain").textContent = q.exp;
+
+  setTimeout(() => {
+    nextQuestion();
+  }, 1300);
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){
+    showResult();
+  }else{
+    showQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById("quizScreen").style.display = "none";
+  document.getElementById("resultScreen").style.display = "block";
+
+  const percent = Math.round((correct / questions.length) * 100);
+  document.getElementById("finalScore").textContent = `${correct} / ${questions.length}`;
+
+  let rank = "";
+  let comment = "";
+
+  if(percent >= 90){
+    rank = "SPI突破レベル：S";
+    comment = "かなり優秀です。基礎計算・語彙・推論のバランスが取れています。";
+  }else if(percent >= 75){
+    rank = "SPI突破レベル：A";
+    comment = "十分に高得点を狙えるレベルです。時間を意識して解く練習をするとさらに良くなります。";
+  }else if(percent >= 55){
+    rank = "SPI突破レベル：B";
+    comment = "基本は押さえています。割合・速さ・語彙問題を重点的に練習しましょう。";
+  }else{
+    rank = "SPI突破レベル：C";
+    comment = "まずは基礎問題から復習しましょう。計算問題と語句の意味を固めると点数が伸びます。";
+  }
+
+  document.getElementById("rank").textContent = rank;
+  document.getElementById("comment").textContent = comment;
+}
+</script>
+</body>
+</html>
